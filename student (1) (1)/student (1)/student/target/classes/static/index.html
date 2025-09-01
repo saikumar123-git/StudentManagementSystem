@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .form-container { background-color: white; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); width: 100%; max-width: 28rem; }
+        .table-container { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem; overflow: hidden; }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); }
+        .modal-content { max-height: 90vh; }
+        .spinner { animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        button:disabled { cursor: not-allowed; opacity: 0.7; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+<!-- Main Application Container -->
+<div id="app" class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md w-full">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2 text-indigo-600" viewBox="0 0 20 20" fill="currentColor"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3.5a1 1 0 00.02 1.84l7 3.5a1 1 0 00.748 0l7-3.5a1 1 0 00.02-1.84l-7-3.5zM3 9.36l7 3.5 7-3.5v3.83l-7 3.5-7-3.5V9.36z" /></svg>
+                University Portal
+            </div>
+            <div id="nav-links" class="hidden">
+                <span id="welcome-message" class="mr-6 font-semibold"></span>
+                <button id="logout-button" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300">
+                    Logout
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Dynamic Content Area -->
+    <main class="flex-grow container mx-auto p-4 md:p-8">
+
+        <!-- Login Page -->
+        <div id="login-page" class="flex flex-col items-center justify-center h-full">
+            <div class="form-container">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Sign In</h2>
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
+                        <input type="text" id="username" name="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., admin, teacher, student" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
+                        <input type="password" id="password" name="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-300 flex items-center justify-center">
+                        <span class="button-text">Login</span>
+                    </button>
+                </form>
+                <div id="login-error" class="text-red-500 text-center mt-4"></div>
+            </div>
+        </div>
+
+        <!-- Admin's Registration Page -->
+        <div id="registration-page" class="hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">Admin Dashboard: Create New User</h2>
+            <div class="form-container max-w-lg mx-auto">
+                <form id="registration-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="mb-4">
+                            <label for="reg-username" class="block text-gray-700 font-medium mb-2">Username</label>
+                            <input type="text" id="reg-username" name="username" class="w-full px-4 py-2 border rounded-lg" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="reg-password" class="block text-gray-700 font-medium mb-2">Password</label>
+                            <input type="password" id="reg-password" name="password" class="w-full px-4 py-2 border rounded-lg" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="reg-collageid" class="block text-gray-700 font-medium mb-2">College ID</label>
+                            <input type="text" id="reg-collageid" name="collageId" class="w-full px-4 py-2 border rounded-lg" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="reg-role" class="block text-gray-700 font-medium mb-2">Role</label>
+                            <select id="reg-role" name="role" class="w-full px-4 py-2 border rounded-lg bg-white">
+                                <option value="STUDENT">Student</option>
+                                <option value="TEACHER">Teacher</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center">
+                        <span class="button-text">Register User</span>
+                    </button>
+                </form>
+                <p id="registration-success" class="text-green-500 text-center mt-4"></p>
+            </div>
+        </div>
+
+        <!-- Teacher Dashboard -->
+        <div id="teacher-dashboard" class="hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">Teacher Dashboard</h2>
+            <div class="flex space-x-4 mb-6">
+                <button id="add-student-btn" class="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition duration-300">Add Student Details</button>
+                <button id="view-all-btn" class="bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-600 transition duration-300">View All Students</button>
+            </div>
+            <div class="table-container bg-white">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-4 font-semibold">Roll No</th>
+                        <th class="p-4 font-semibold">Name</th>
+                        <th class="p-4 font-semibold">Percentage</th>
+                        <th class="p-4 font-semibold">Branch</th>
+                        <th class="p-4 font-semibold">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="student-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Student Page -->
+        <div id="student-page" class="hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">My Details</h2>
+            <div class="form-container max-w-md mx-auto">
+                <div id="student-details-content" class="bg-gray-50 p-6 rounded-lg border">
+                    <!-- Student details will be automatically loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modals -->
+<!-- Add/Edit Student Modal -->
+<div id="student-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-backdrop hidden">
+    <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+        <h3 id="modal-title" class="text-2xl font-bold mb-6">Add New Student Details</h3>
+        <form id="student-form">
+            <input type="hidden" id="student-rollno-hidden">
+            <div class="mb-4">
+                <label for="modal-registration-id" class="block text-gray-700 font-medium mb-2">Student's Registration ID</label>
+                <input type="number" id="modal-registration-id" name="registrationId" class="w-full px-4 py-2 border rounded-lg" placeholder="Enter the ID from the Registration table" required>
+            </div>
+            <div class="mb-4">
+                <label for="modal-name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                <input type="text" id="modal-name" name="name" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., Sai Kumar" required>
+            </div>
+            <div class="mb-4">
+                <label for="modal-percentage" class="block text-gray-700 font-medium mb-2">Percentage</label>
+                <input type="number" step="0.01" id="modal-percentage" name="percentage" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., 85.5" required>
+            </div>
+            <div class="mb-4">
+                <label for="modal-branch" class="block text-gray-700 font-medium mb-2">Branch</label>
+                <input type="text" id="modal-branch" name="branch" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., Computer Science" required>
+            </div>
+            <div class="flex justify-end space-x-4 mt-8">
+                <button type="button" id="cancel-modal-btn" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400">Cancel</button>
+                <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700 flex items-center justify-center">
+                    <span class="button-text">Save</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Alert/Confirm Modal -->
+<div id="alert-modal" class="fixed inset-0 w-full h-full flex items-center justify-center modal-backdrop hidden">
+    <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+        <h3 id="alert-title" class="text-xl font-bold mb-4">Confirmation</h3>
+        <div id="alert-message" class="text-gray-600 mb-6">Are you sure?</div>
+        <div id="alert-buttons" class="flex justify-end space-x-4">
+            <button id="alert-cancel" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400">Cancel</button>
+            <button id="alert-confirm" class="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- State Management ---
+        const state = {
+            apiBaseUrl: 'http://localhost:8080',
+            currentUser: { name: null, role: null, token: null },
+        };
+
+        // --- DOM Elements ---
+        const pages = { login: document.getElementById('login-page'), registration: document.getElementById('registration-page'), teacher: document.getElementById('teacher-dashboard'), student: document.getElementById('student-page') };
+        const navLinks = document.getElementById('nav-links');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const logoutButton = document.getElementById('logout-button');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const registrationForm = document.getElementById('registration-form');
+        const registrationSuccess = document.getElementById('registration-success');
+        const studentTableBody = document.getElementById('student-table-body');
+        const addStudentBtn = document.getElementById('add-student-btn');
+        const viewAllBtn = document.getElementById('view-all-btn');
+        const studentModal = document.getElementById('student-modal');
+        const studentForm = document.getElementById('student-form');
+        const cancelModalBtn = document.getElementById('cancel-modal-btn');
+        const modalTitle = document.getElementById('modal-title');
+        const rollnoHiddenInput = document.getElementById('student-rollno-hidden');
+        const studentDetailsContent = document.getElementById('student-details-content');
+        const alertModal = document.getElementById('alert-modal');
+        const alertTitle = document.getElementById('alert-title');
+        const alertMessage = document.getElementById('alert-message');
+        const alertConfirmBtn = document.getElementById('alert-confirm');
+        const alertCancelBtn = document.getElementById('alert-cancel');
+
+        // --- Helper Functions ---
+        const spinnerSVG = `<svg class="spinner h-5 w-5 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+        const showButtonLoading = (button) => { button.disabled = true; const text = button.querySelector('.button-text'); if (text) text.insertAdjacentHTML('beforebegin', spinnerSVG); };
+        const hideButtonLoading = (button) => { button.disabled = false; const spinner = button.querySelector('.spinner'); if (spinner) spinner.remove(); };
+
+        const showModal = (title, message, confirmText = 'OK', cancelText = null) => {
+            alertTitle.textContent = title;
+            alertMessage.innerHTML = message;
+            alertConfirmBtn.textContent = confirmText;
+            alertConfirmBtn.className = confirmText.toLowerCase() === 'delete' ? 'bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700' : 'bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700';
+            if (cancelText) { alertCancelBtn.textContent = cancelText; alertCancelBtn.classList.remove('hidden'); }
+            else { alertCancelBtn.classList.add('hidden'); }
+            alertModal.classList.remove('hidden');
+            return new Promise((resolve) => {
+                const confirmHandler = () => { alertModal.classList.add('hidden'); resolve(true); removeListeners(); };
+                const cancelHandler = () => { alertModal.classList.add('hidden'); resolve(false); removeListeners(); };
+                const removeListeners = () => { alertConfirmBtn.removeEventListener('click', confirmHandler); alertCancelBtn.removeEventListener('click', cancelHandler); };
+                alertConfirmBtn.addEventListener('click', confirmHandler);
+                alertCancelBtn.addEventListener('click', cancelHandler);
+            });
+        };
+
+        const getFriendlyErrorMessage = (error, action) => {
+            if (error.message && error.message.includes('403')) {
+                const userRole = state.currentUser.role ? state.currentUser.role.toUpperCase() : 'UNKNOWN';
+                return `<div class="text-left"><p class="font-bold mb-2 text-lg">Action Prohibited (Error 403)</p><p class="text-sm">Your backend security has correctly blocked this action. The code is correct, but the running application is not seeing the correct permissions.</p><div class="bg-yellow-50 p-3 rounded-lg my-3 text-sm border border-yellow-200"><p><strong>Logged-in User:</strong> ${state.currentUser.name}</p><p><strong>User's Role (from token):</strong> ${userRole}</p></div><p class="font-bold mt-4">This is a Build or Data Issue</p><p class="text-sm">Please perform these steps on your backend:</p><ol class="list-decimal list-inside text-sm mt-1 space-y-1"><li><strong>Force-update the database:</strong> Run <code>UPDATE Registration SET role = 'TEACHER' WHERE username = '${state.currentUser.name}';</code></li><li><strong>Clean and Rebuild Project:</strong> Run <code>mvn clean install</code> or <code>./gradlew clean build</code> in your terminal.</li><li><strong>Restart Backend:</strong> Stop and then start your Spring Boot application.</li></ol></div>`;
+            }
+            if (error.message.includes('Connection Error')) { return `Connection Error: Cannot reach the server. Please ensure the backend is running.`; }
+            return `An error occurred while trying to ${action}: ${error.message}`;
+        };
+
+        // --- API Fetch Function ---
+        const apiFetch = async (endpoint, options = {}) => {
+            const headers = { 'Content-Type': 'application/json', ...options.headers };
+            if (state.currentUser && state.currentUser.token) { headers['Authorization'] = `Bearer ${state.currentUser.token}`; }
+            try {
+                const response = await fetch(state.apiBaseUrl + endpoint, { ...options, headers });
+                const responseText = await response.text();
+                if (!response.ok) {
+                    let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    try {
+                        const errorJson = JSON.parse(responseText);
+                        errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson) || errorMessage;
+                    } catch (e) { if (responseText) errorMessage = responseText; }
+                    throw new Error(errorMessage);
+                }
+                if (!responseText) return null;
+                try { return JSON.parse(responseText); } catch (e) { return responseText; }
+            } catch (error) {
+                console.error(`API Fetch Error to ${endpoint}:`, error);
+                if (error instanceof TypeError && error.message === 'Failed to fetch') {
+                    throw new Error('Connection Error: Cannot reach the server. Please ensure the backend is running.');
+                }
+                throw error;
+            }
+        };
+
+        const parseJwt = (token) => {
+            try {
+                const base64Url = token.split('.')[1];
+                if (!base64Url) { console.error("Invalid JWT structure:", token); return null; }
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) { console.error("Failed to parse JWT:", e); return null; }
+        };
+
+        // --- Page Management & Data Fetching ---
+        const showPage = (pageKey) => { Object.values(pages).forEach(p => p.classList.add('hidden')); if(pages[pageKey]) pages[pageKey].classList.remove('hidden'); };
+
+        const fetchAndShowStudentDetails = async () => {
+            studentDetailsContent.innerHTML = `<div class="flex items-center justify-center">${spinnerSVG} Loading details...</div>`;
+            try {
+                const student = await apiFetch('/student/me');
+                if (student) {
+                    studentDetailsContent.innerHTML = `<h4 class="text-xl font-bold mb-2">${student.name}</h4><p><strong>Roll No:</strong> ${student.rollno}</p><p><strong>Percentage:</strong> ${student.percentage}%</p><p><strong>Branch:</strong> ${student.branch}</p>`;
+                } else {
+                     studentDetailsContent.innerHTML = `<p class="text-center text-gray-500">Your academic details have not been added by a teacher yet.</p>`;
+                }
+            } catch (error) {
+                studentDetailsContent.innerHTML = `<p class="text-red-500">Error: ${getFriendlyErrorMessage(error, 'fetch your details')}</p>`;
+            }
+        };
+
+        const updateUIForAuthState = () => {
+            if (state.currentUser && state.currentUser.role) {
+                navLinks.classList.remove('hidden');
+                const username = state.currentUser.name;
+                welcomeMessage.textContent = `Welcome, ${username.charAt(0).toUpperCase() + username.slice(1)}!`;
+                switch (state.currentUser.role) {
+                    case 'admin': showPage('registration'); break;
+                    case 'teacher': showPage('teacher'); renderStudentTable(); break;
+                    case 'student': showPage('student'); fetchAndShowStudentDetails(); break;
+                    default: handleLogout(); showModal('Login Error', 'Unknown user role received.'); break;
+                }
+            } else {
+                navLinks.classList.add('hidden');
+                showPage('login');
+            }
+        };
+
+        // --- Event Handlers ---
+        const handleLogin = async (event) => {
+            event.preventDefault();
+            const button = event.submitter;
+            loginError.innerHTML = '';
+            showButtonLoading(button);
+            try {
+                const formData = new FormData(loginForm);
+                const data = Object.fromEntries(formData.entries());
+                const result = await apiFetch('/login/loginDetails', { method: 'POST', body: JSON.stringify(data) });
+                if (result && result.token) {
+                    const decodedToken = parseJwt(result.token);
+                    if (decodedToken && decodedToken.role && decodedToken.sub) {
+                        state.currentUser = { name: decodedToken.sub, role: decodedToken.role.replace('ROLE_', '').toLowerCase(), token: result.token };
+                        updateUIForAuthState();
+                    } else { loginError.textContent = 'Login failed: Invalid token structure from server.'; }
+                } else { loginError.textContent = 'Login failed: Invalid token received from server.'; }
+            } catch (error) {
+                if (error.message.includes('Connection Error')) {
+                    loginError.innerHTML = `<div class="text-left bg-red-50 p-4 rounded-lg border border-red-200"><p class="font-bold">Login Failed: Could not connect to the backend server.</p><p class="mt-2 text-sm">Please check the following:</p><ul class="list-disc list-inside text-sm mt-1"><li>Is your Spring Boot application running?</li><li>Check the console in your IDE for any startup errors.</li><li>Ensure the backend is running on <strong>http://localhost:8080</strong>.</li></ul></div>`;
+                } else { loginError.textContent = `Login failed: ${error.message}`; }
+            } finally { hideButtonLoading(button); }
+        };
+
+        const handleLogout = () => {
+            state.currentUser = { name: null, role: null, token: null };
+            loginForm.reset();
+            loginError.innerHTML = '';
+            registrationSuccess.textContent = '';
+            updateUIForAuthState();
+        };
+
+        const handleRegistration = async (event) => {
+            event.preventDefault();
+            const button = event.submitter;
+            registrationSuccess.textContent = '';
+            showButtonLoading(button);
+            try {
+                const formData = new FormData(registrationForm);
+                const data = Object.fromEntries(formData.entries());
+                await apiFetch('/registration/registerDetails', { method: 'POST', body: JSON.stringify(data) });
+                showModal('Success', 'User registered successfully!');
+                registrationForm.reset();
+            } catch (error) { showModal('Registration Failed', getFriendlyErrorMessage(error, 'register a new user')); }
+            finally { hideButtonLoading(button); }
+        };
+
+        const renderStudentTable = async () => {
+            try {
+                const students = await apiFetch('/teacher/viewall');
+                studentTableBody.innerHTML = '';
+                if (students && Array.isArray(students) && students.length > 0) {
+                    students.forEach(student => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b hover:bg-gray-50';
+                        row.innerHTML = `<td class="p-4">${student.rollno}</td><td class="p-4">${student.name}</td><td class="p-4">${student.percentage}%</td><td class="p-4">${student.branch}</td><td class="p-4 flex space-x-2"><button data-rollno="${student.rollno}" class="edit-btn text-indigo-600 hover:text-indigo-800 font-medium">Edit</button><button data-rollno="${student.rollno}" class="delete-btn text-red-600 hover:text-red-800 font-medium">Delete</button></td>`;
+                        studentTableBody.appendChild(row);
+                    });
+                } else { studentTableBody.innerHTML = '<tr><td colspan="5" class="text-center p-4">No students found.</td></tr>'; }
+            } catch (error) {
+                const msg = getFriendlyErrorMessage(error, 'load student data');
+                studentTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">${msg}</td></tr>`;
+            }
+        };
+
+        const openStudentModal = (student = null) => {
+            studentForm.reset();
+            rollnoHiddenInput.value = '';
+            const nameField = document.getElementById('modal-name').closest('.mb-4');
+            const regIdField = document.getElementById('modal-registration-id').closest('.mb-4');
+
+            if (student) {
+                modalTitle.textContent = 'Edit Student Details';
+                rollnoHiddenInput.value = student.rollno;
+                nameField.classList.remove('hidden');
+                regIdField.classList.add('hidden');
+                document.getElementById('modal-name').value = student.name;
+                document.getElementById('modal-percentage').value = student.percentage;
+                document.getElementById('modal-branch').value = student.branch;
+            } else {
+                modalTitle.textContent = 'Add New Student Details';
+                nameField.classList.remove('hidden');
+                regIdField.classList.remove('hidden');
+            }
+            studentModal.classList.remove('hidden');
+        };
+
+        const closeStudentModal = () => { studentModal.classList.add('hidden'); };
+
+        const handleStudentFormSubmit = async (event) => {
+            event.preventDefault();
+            const button = event.submitter;
+            showButtonLoading(button);
+            const formData = new FormData(studentForm);
+            const studentData = Object.fromEntries(formData.entries());
+            const originalRollno = rollnoHiddenInput.value;
+            try {
+                if (originalRollno) {
+                    const editData = { percentage: studentData.percentage, branch: studentData.branch, name: studentData.name };
+                    await apiFetch(`/teacher/update/${originalRollno}`, { method: 'PUT', body: JSON.stringify(editData) });
+                } else {
+                    const registrationId = studentData.registrationId;
+                    const addData = { percentage: studentData.percentage, branch: studentData.branch, name: studentData.name };
+                    await apiFetch(`/teacher/addstudent/${registrationId}`, { method: 'POST', body: JSON.stringify(addData) });
+                }
+                closeStudentModal();
+                renderStudentTable();
+            } catch (error) { showModal('Save Error', getFriendlyErrorMessage(error, 'save student data')); }
+            finally { hideButtonLoading(button); }
+        };
+
+        const handleDeleteStudent = async (rollno) => {
+            const confirmed = await showModal('Confirm Deletion', `Are you sure you want to delete student with Roll No: ${rollno}?`, 'Delete', 'Cancel');
+            if (confirmed) {
+                try {
+                    await apiFetch(`/teacher/del/${rollno}`, { method: 'DELETE' });
+                    renderStudentTable();
+                } catch (error) { showModal('Delete Error', getFriendlyErrorMessage(error, 'delete this student')); }
+            }
+        };
+
+        // --- Event Listeners ---
+        loginForm.addEventListener('submit', handleLogin);
+        logoutButton.addEventListener('click', handleLogout);
+        registrationForm.addEventListener('submit', handleRegistration);
+        addStudentBtn.addEventListener('click', () => openStudentModal());
+        viewAllBtn.addEventListener('click', renderStudentTable);
+        cancelModalBtn.addEventListener('click', closeStudentModal);
+        studentForm.addEventListener('submit', handleStudentFormSubmit);
+        studentTableBody.addEventListener('click', async (event) => {
+            const target = event.target;
+            const rollno = target.dataset.rollno;
+            if (rollno && target.classList.contains('edit-btn')) {
+                try {
+                    const student = await apiFetch(`/teacher/getbyid/${rollno}`);
+                    openStudentModal(student);
+                } catch(error){ showModal('Fetch Error', getFriendlyErrorMessage(error, 'fetch student details')); }
+            }
+            if (rollno && target.classList.contains('delete-btn')) { handleDeleteStudent(rollno); }
+        });
+
+        // --- Initial Load ---
+        updateUIForAuthState();
+    });
+</script>
+</body>
+</html>
+
